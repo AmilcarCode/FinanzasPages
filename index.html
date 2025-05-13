@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro Financiero</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Registro Financiero Mensual</h1>
+        
+        <!-- Estadísticas -->
+        <div class="stats">
+            <p>Fecha Actual: <span id="currentDate"></span></p>
+            <p>Saldo Actual: $<span id="currentBalance">0</span></p>
+            <p>Balance Anual: $<span id="annualBalance">0</span></p>
+        </div>
+
+        <!-- Formulario -->
+        <div>
+            <h2>Nuevo Registro</h2>
+            <form id="transactionForm">
+                <div class="form-group">
+                    <label>Tipo:</label>
+                    <select id="type" required>
+                        <option value="ingreso">Ingreso</option>
+                        <option value="gasto">Gasto</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Monto:</label>
+                    <input type="number" id="amount" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label>Descripción:</label>
+                    <input type="text" id="description" required>
+                </div>
+                <button type="submit">Agregar</button>
+            </form>
+        </div>
+
+        <!-- Tabla de registros -->
+        <div>
+            <h2>Registros del Mes</h2>
+            <select id="monthSelector"></select>
+            <button id="exportExcel">Exportar a Excel</button>
+            <table id="FinanzasTable">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Tipo</th>
+                        <th>Monto</th>
+                        <th>Descripción</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/xlsx.full.min.js"></script>
+    <script src="app.js" defer></script>
+
+</body>
+</html>
