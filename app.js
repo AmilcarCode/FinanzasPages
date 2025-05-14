@@ -80,7 +80,7 @@ function renderTransactions(transactions) {
             </td>
             <td>${transaction.description}</td>
             <td>
-                <button onclick="eliminarRegistro('${transaction.id}')">
+                <button class="btn-eliminar" onclick="eliminarRegistro('${transaction.id}')">
                     🗑️
                 </button>
             </td>

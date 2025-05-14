@@ -153,6 +153,11 @@ tr:hover {
         padding: 0;
     }
     
+    .btn-eliminar {
+        font-size: 1em; /* Un poco más pequeño en pantallas chicas */
+        padding: 2px;
+        }    
+    
     .container {
         width: 100%;
         border-radius: 0;
@@ -321,3 +326,15 @@ tr:hover {
         box-shadow: 0 0 8px #00f2fe;
     }
 }
+
+.btn-eliminar {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2em;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
