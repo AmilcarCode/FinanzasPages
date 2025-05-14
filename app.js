@@ -79,6 +79,11 @@ function renderTransactions(transactions) {
                 $${transaction.amount.toFixed(2)}
             </td>
             <td>${transaction.description}</td>
+            <td>
+                <button onclick="eliminarRegistro('${transaction.id}')">
+                    🗑️
+                </button>
+            </td>
         `;
         tbody.appendChild(row);
     });
@@ -187,20 +192,16 @@ async function initApp() {
     populateMonthSelector();
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-function renderTransactions(transactions) {
-    const tbody = document.querySelector('#FinanzasTable tbody');
-    tbody.innerHTML = '';
+async function eliminarRegistro(id) {
+    const { error } = await client
+        .from('Finanzas') // Reemplaza con el nombre real
+        .delete()
+        .eq('id', id);
 
-    transactions.forEach(transaction => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td data-label="Fecha">${new Date(transaction.date).toLocaleDateString('es-ES')}</td>
-            <td data-label="Tipo">${transaction.type.toUpperCase()}</td>
-            <td data-label="Monto" class="${transaction.type === 'gasto' ? 'negative' : 'positive'}">
-                $${transaction.amount.toFixed(2)}
-            </td>
-            <td data-label="Descripción">${transaction.description}</td>
-        `;
-        tbody.appendChild(row);
-    });
+    if (error) {
+        alert('Error al eliminar: ' + error.message);
+    } else {
+        alert('Registro eliminado correctamente');
+        loadTransactions(); // Recarga la tabla
+    }
 }
