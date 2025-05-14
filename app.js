@@ -1,130 +1,137 @@
-// Configuración de Supabase
+// app.js
+
+// Inicializar Supabase sin import, usando la librería global cargada en index.html
 const client = supabase.createClient(
-    'https://tbbpggnvbqasrlcxqquz.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRiYnBnZ252YnFhc3JsY3hxcXV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcxNjkzMDUsImV4cCI6MjA2Mjc0NTMwNX0.npDqEwBEnxfFxo5dOU4hfm4diRG3-TaaqPucpmsY3FM'
+  'https://tbbpggnvbqasrlcxqquz.supabase.co',
+  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRiYnBnZ252YnFhc3JsY3hxcXV6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDcxNjkzMDUsImV4cCI6MjA2Mjc0NTMwNX0.npDqEwBEnxfFxo5dOU4hfm4diRG3-TaaqPucpmsY3FM'
 );
 
-document.addEventListener('DOMContentLoaded', async () => {
-    try {
-        // Configurar fecha actual
-        const now = new Date();
-        document.getElementById('currentDate').textContent = 
-            `${now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })}`;
 
-        // Asegurar que el formulario existe
-        const form = document.getElementById('transactionForm');
-        if (!form) throw new Error('El formulario no existe en el DOM');
 
-        // Event listeners
-        form.addEventListener('submit', handleSubmit);
-        
-        document.getElementById('exportExcel').addEventListener('click', exportToExcel);
-        
-        // Inicializar
-        await initApp();
-    } catch (error) {
-        console.error('Error durante la inicialización:', error);
+document.addEventListener('DOMContentLoaded', () => {
+  // Auth
+  document.getElementById('btn-signin').addEventListener('click', signIn)
+  document.getElementById('btn-signup').addEventListener('click', signUp)
+  document.getElementById('btn-logout').addEventListener('click', signOut)
+  client.auth.onAuthStateChange((event, session) => {
+    if (session) showApp()
+    else showAuth()
+  })
+
+  // Formulario
+  document.getElementById('transactionForm').addEventListener('submit', handleSubmit)
+  document.getElementById('exportExcel').addEventListener('click', exportToExcel)
+})
+
+async function signIn() {
+  const email = document.getElementById('auth-email').value
+  const password = document.getElementById('auth-password').value
+  const { error } = await client.auth.signInWithPassword({ email, password });
+  if (error) alert(error.message)
+}
+
+async function signUp() {
+  const email = document.getElementById('auth-email').value
+  const password = document.getElementById('auth-password').value
+  const { data, error } = await client.auth.signUp({ 
+    email, 
+    password,
+    options: {
+      emailRedirectTo: window.location.href // Opcional: URL de redirección después de confirmación
     }
-});
+  })
+  
+  if (error) {
+    alert(`Error: ${error.message}`)
+    return
+  }
+  
+  if (data?.user && !data.user.identities?.length) {
+    alert('Este correo ya está registrado')
+    return
+  }
+  
+  // Mostrar mensaje de confirmación
+  document.getElementById('auth-form').style.display = 'none'
+  document.getElementById('confirmation-message').style.display = 'block'
+}
+
+async function signOut() {
+  await client.auth.signOut()
+}
+
+function showAuth() {
+  document.getElementById('auth-container').style.display = 'block'
+  document.getElementById('app-container').style.display = 'none'
+}
+
+function showApp() {
+  document.getElementById('auth-container').style.display = 'none'
+  document.getElementById('app-container').style.display = 'block'
+  initApp()
+}
 
 async function initApp() {
-    await loadTransactions();
-    await updateBalances();
-    populateMonthSelector();
+  setCurrentDate()
+  await loadTransactions()
+  await updateBalances()
+  populateMonthSelector()
+}
+
+function setCurrentDate() {
+  const now = new Date()
+  document.getElementById('currentDate').textContent = now.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' })
 }
 
 async function handleSubmit(e) {
-    e.preventDefault();
-    
-    const transaction = {
-        type: document.getElementById('type').value,
-        amount: parseFloat(document.getElementById('amount').value),
-        description: document.getElementById('description').value,
-        date: new Date().toISOString()
-    };
+  e.preventDefault()
+  // Obtener la sesión actual y el usuario en v2
+  const { data: { session }, error: sessionError } = await client.auth.getSession()
+  if (sessionError || !session) {
+    return alert('No se pudo obtener la sesión de usuario')
+  }
+  const user = session.user
+  
+  const tx = {
+    user_id: user.id,
+    type: document.getElementById('type').value,
+    amount: parseFloat(document.getElementById('amount').value),
+    description: document.getElementById('description').value,
+    date: new Date().toISOString() 
+  }
+  const { error } = await client.from('Finanzas').insert([tx])
+  if (error) return alert(error.message)
+  e.target.reset()
+  await loadTransactions()
+  await updateBalances()
 
-    const { error } = await client
-        .from('Finanzas')
-        .insert([transaction]);
-
-    if (!error) {
-        await loadTransactions();
-        await updateBalances();
-        document.getElementById('transactionForm').reset();
-    }
 }
 
-async function loadTransactions() {
-    const { data, error } = await client
-        .from('Finanzas')
-        .select('*')
-        .order('date', { ascending: false });
 
-    if (!error) {
-        renderTransactions(data);
-        setupMonthFilter(data);
-    }
+async function loadTransactions() {
+  const { data, error } = await client
+    .from('Finanzas')
+    .select('*')
+    .order('date', { ascending: false })
+  if (error) return console.error(error)
+  renderTransactions(data)
+  setupMonthFilter(data)
 }
 
 function renderTransactions(transactions) {
-    const tbody = document.querySelector('#FinanzasTable tbody');
-    tbody.innerHTML = '';
-
-    transactions.forEach(transaction => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td data-label="Fecha">${new Date(transaction.date).toLocaleDateString('es-ES')}</td>
-            <td data-label="Tipo">${transaction.type.toUpperCase()}</td>
-            <td data-label="Monto" class="${transaction.type === 'gasto' ? 'negative' : 'positive'}">
-                $${transaction.amount.toFixed(2)}
-            </td>
-            <td data-label="Descripción">${transaction.description}</td>
-            <td data-label="Eliminar">
-                <button class="btn-eliminar" onclick="eliminarRegistro('${transaction.id}')">
-                    🗑️
-                </button>
-            </td>
-        `;
-        tbody.appendChild(row);
-    });
-}
-
-async function updateBalances() {
-    const currentDate = new Date();
-    const currentYear = currentDate.getFullYear();
-    const currentMonth = currentDate.getMonth() + 1;
-    const paddedMonth = String(currentMonth).padStart(2, '0');
-    const lastDay = new Date(currentYear, currentMonth, 0).getDate(); // último día del mes
-
-    // Balance mensual
-    const { data: monthlyData = [], error: monthError } = await client
-        .from('Finanzas')
-        .select('amount, type')
-        .gte('date', `${currentYear}-${paddedMonth}-01`)
-        .lte('date', `${currentYear}-${paddedMonth}-${lastDay}`);
-
-    if (monthError) console.error('Error al cargar datos mensuales:', monthError);
-
-    const monthlyBalance = monthlyData.reduce((acc, curr) => {
-        return curr.type === 'ingreso' ? acc + curr.amount : acc - curr.amount;
-    }, 0);
-
-    document.getElementById('currentBalance').textContent = monthlyBalance.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-    // Balance anual
-    const { data: annualData = [], error: yearError } = await client
-        .from('Finanzas')
-        .select('amount, type')
-        .gte('date', `${currentYear}-01-01`)
-        .lte('date', `${currentYear}-12-31`);
-
-    if (yearError) console.error('Error al cargar datos anuales:', yearError);
-
-    const annualBalance = annualData.reduce((acc, curr) => {
-        return curr.type === 'ingreso' ? acc + curr.amount : acc - curr.amount;
-    }, 0);
-
-    document.getElementById('annualBalance').textContent = annualBalance.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const tbody = document.querySelector('#FinanzasTable tbody')
+  tbody.innerHTML = ''
+  transactions.forEach(tx => {
+    const tr = document.createElement('tr')
+    tr.innerHTML = `
+      <td data-label="Fecha">${new Date(tx.date).toLocaleDateString('es-ES')}</td>
+      <td data-label="Tipo">${tx.type}</td>
+      <td data-label="Monto" class="${tx.type==='gasto'?'negative':'positive'}">$${tx.amount.toFixed(2)}</td>
+      <td data-label="Descripción">${tx.description}</td>
+      <td data-label="Eliminar"><button onclick="deleteTx('${tx.id}')">🗑️</button></td>
+    `
+    tbody.appendChild(tr)
+  })
 }
 
 
@@ -135,6 +142,7 @@ function populateMonthSelector() {
     ];
 
     const selector = document.getElementById('monthSelector');
+    selector.innerHTML = '';
     months.forEach((month, index) => {
         const option = document.createElement('option');
         option.value = index + 1;
@@ -172,6 +180,12 @@ async function exportToExcel() {
     XLSX.writeFile(workbook, `Finanzas_${currentYear}.xlsx`);
 }
 
+async function deleteTx(id) {
+  const { error } = await client.from('Finanzas').delete().eq('id', id)
+  if (error) return alert(error.message)
+  await loadTransactions()
+}
+
 function setupMonthFilter(data) {
     const selector = document.getElementById('monthSelector');
     selector.addEventListener('change', () => {
@@ -185,23 +199,40 @@ function setupMonthFilter(data) {
     });
 }
 
-async function initApp() {
-    console.log('Iniciando app...'); // ✔️ Verifica si llega aquí
-    await loadTransactions();
-    await updateBalances();
-    populateMonthSelector();
-}
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-async function eliminarRegistro(id) {
-    const { error } = await client
-        .from('Finanzas') // Reemplaza con el nombre real
-        .delete()
-        .eq('id', id);
+// app.js (actualización de la función updateBalances)
+async function updateBalances() {
+  const { data: transactions, error } = await client
+    .from('Finanzas')
+    .select('*');
 
-    if (error) {
-        alert('Error al eliminar: ' + error.message);
-    } else {
-        alert('Registro eliminado correctamente');
-        loadTransactions(); // Recarga la tabla
-    }
+  if (error) return console.error(error);
+
+  const now = new Date();
+  const currentMonth = now.getMonth();
+  const currentYear = now.getFullYear();
+
+  // Balance del mes actual
+  const currentMonthTx = transactions.filter(tx => {
+    const txDate = new Date(tx.date);
+    return txDate.getMonth() === currentMonth && 
+           txDate.getFullYear() === currentYear;
+  });
+
+  const currentBalance = currentMonthTx.reduce((acc, tx) => {
+    return tx.type === 'ingreso' ? acc + tx.amount : acc - tx.amount;
+  }, 0);
+
+  document.getElementById('currentBalance').textContent = currentBalance.toFixed(2);
+
+  // Balance anual
+  const annualTx = transactions.filter(tx => {
+    const txDate = new Date(tx.date);
+    return txDate.getFullYear() === currentYear;
+  });
+
+  const annualBalance = annualTx.reduce((acc, tx) => {
+    return tx.type === 'ingreso' ? acc + tx.amount : acc - tx.amount;
+  }, 0);
+
+  document.getElementById('annualBalance').textContent = annualBalance.toFixed(2);
 }
