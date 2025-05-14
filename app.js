@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
         // Event listeners
         form.addEventListener('submit', handleSubmit);
+        
         document.getElementById('exportExcel').addEventListener('click', exportToExcel);
         
         // Inicializar
@@ -103,7 +104,7 @@ async function updateBalances() {
         return curr.type === 'ingreso' ? acc + curr.amount : acc - curr.amount;
     }, 0);
 
-    document.getElementById('currentBalance').textContent = monthlyBalance.toFixed(2);
+    document.getElementById('currentBalance').textContent = monthlyBalance.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
     // Balance anual
     const { data: annualData = [], error: yearError } = await client
@@ -118,7 +119,7 @@ async function updateBalances() {
         return curr.type === 'ingreso' ? acc + curr.amount : acc - curr.amount;
     }, 0);
 
-    document.getElementById('annualBalance').textContent = annualBalance.toFixed(2);
+    document.getElementById('annualBalance').textContent = annualBalance.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
 
@@ -186,4 +187,20 @@ async function initApp() {
     populateMonthSelector();
 }
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
-FinanzasPages
+function renderTransactions(transactions) {
+    const tbody = document.querySelector('#FinanzasTable tbody');
+    tbody.innerHTML = '';
+
+    transactions.forEach(transaction => {
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td data-label="Fecha">${new Date(transaction.date).toLocaleDateString('es-ES')}</td>
+            <td data-label="Tipo">${transaction.type.toUpperCase()}</td>
+            <td data-label="Monto" class="${transaction.type === 'gasto' ? 'negative' : 'positive'}">
+                $${transaction.amount.toFixed(2)}
+            </td>
+            <td data-label="Descripción">${transaction.description}</td>
+        `;
+        tbody.appendChild(row);
+    });
+}
