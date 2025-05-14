@@ -73,13 +73,13 @@ function renderTransactions(transactions) {
     transactions.forEach(transaction => {
         const row = document.createElement('tr');
         row.innerHTML = `
-            <td>${new Date(transaction.date).toLocaleDateString('es-ES')}</td>
-            <td>${transaction.type.toUpperCase()}</td>
-            <td class="${transaction.type === 'gasto' ? 'negative' : 'positive'}">
+            <td data-label="Fecha">${new Date(transaction.date).toLocaleDateString('es-ES')}</td>
+            <td data-label="Tipo">${transaction.type.toUpperCase()}</td>
+            <td data-label="Monto" class="${transaction.type === 'gasto' ? 'negative' : 'positive'}">
                 $${transaction.amount.toFixed(2)}
             </td>
-            <td>${transaction.description}</td>
-            <td>
+            <td data-label="Descripción">${transaction.description}</td>
+            <td data-label="Eliminar">
                 <button class="btn-eliminar" onclick="eliminarRegistro('${transaction.id}')">
                     🗑️
                 </button>

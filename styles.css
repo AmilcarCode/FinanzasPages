@@ -149,6 +149,22 @@ tr:hover {
 
 /* Media queries móviles */
 @media (max-width: 768px) {
+    #FinanzasTable td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 10px !important;
+        width: 100% !important;
+    }
+
+    #FinanzasTable td::before {
+        content: attr(data-label);
+        font-weight: bold;
+        color: #00fff7;
+        margin-right: 15px;
+        flex-shrink: 0;
+    }
+       
     body {
         padding: 0;
     }
@@ -253,20 +269,10 @@ tr:hover {
 
     #FinanzasTable tr {
         display: block;
-        margin-bottom: 60px;
-        background-color: rgba(255, 255, 255, 0.03);
-        border: 30% solid #00ffe1;
+        margin-bottom: 10px;
         border-radius: 8px;
-        box-shadow: 8 8 8px rgba(0, 255, 247, 0.1);
-    }
-
-    #FinanzasTable td {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        width: 100% !important;
-        padding: 10px 70% !important;
-        border-bottom: 2px solid rgba(0, 255, 198, 0.1);
+        background-color: rgba(25, 25, 40, 0.85);
+        box-shadow: 0 0 10px rgba(0, 255, 247, 0.2);
     }
 
     #FinanzasTable td:last-child {
