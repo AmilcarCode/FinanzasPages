@@ -224,6 +224,15 @@ async function updateBalances() {
 
   document.getElementById('currentBalance').textContent = currentBalance.toFixed(2);
 
+  // Gasto mensual
+  const monthlyExpense = currentMonthTx
+    .filter(tx => tx.type === 'gasto')
+    .reduce((acc, tx) => acc + tx.amount, 0);
+
+  document.getElementById('currentBalance').textContent = currentBalance.toFixed(2);
+  document.getElementById('monthlyExpense').textContent = monthlyExpense.toFixed(2);
+
+
   // Balance anual
   const annualTx = transactions.filter(tx => {
     const txDate = new Date(tx.date);

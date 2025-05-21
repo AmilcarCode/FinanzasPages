@@ -1,9 +1,10 @@
-<!-- index.html -->
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" href="logo.ico">
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
   <title>Registro Financiero</title>
   <link rel="stylesheet" href="styles.css">
@@ -34,8 +35,10 @@
 
   <!-- App principal -->
   <div id="app-container" class="container" style="display:none;">
-    <button id="btn-logout">Cerrar sesión</button>
-    <h1>Registro Financiero Mensual</h1>
+    <button id="btn-logout" >Cerrar sesión</button>
+    <h1 >Registro Financiero Mensual
+      <img src="logo.png" alt="Logo" style="height: 50px; vertical-align: middle;">
+     </h1>
     <!-- Estadísticas -->
     <div class="stats-cards">
       <div class="stat-card">
@@ -45,6 +48,10 @@
       <div class="stat-card">
         <h3>💰 Saldo Actual</h3>
         <p class="stat-value">$<span id="currentBalance">0</span></p>
+      </div>
+      <div class="stat-card">
+        <h3>💸 Gasto Mensual</h3>
+        <p class="stat-value">$<span id="monthlyExpense">0</span></p>
       </div>
       <div class="stat-card">
         <h3>📈 Balance Anual</h3>
